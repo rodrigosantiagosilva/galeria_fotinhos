@@ -1,9 +1,23 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.senac.tarefas',
   appName: 'galeria_fotinhos',
-  webDir: 'dist'
-};
+  webDir: 'dist',
 
-export default config;
+  plugins: {
+    Camera: {
+      permissions: ['camera', 'photos']
+    },
+
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#003F6B'
+    },
+    Keyboard: {
+      resieze: "body",
+    }
+  }
+}
+
+export default config
