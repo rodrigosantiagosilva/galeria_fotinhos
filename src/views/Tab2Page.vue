@@ -61,18 +61,23 @@
                 class="foto-card"
               >
 
+                <!-- FOTO -->
+
                 <img
                   :src="foto.caminho"
                   class="foto"
                   alt="Foto"
+                  @click="abrirFoto(foto.caminho)"
                 />
 
+
+                <!-- BOTÃO REMOVER -->
 
                 <ion-button
                   expand="block"
                   color="danger"
                   fill="clear"
-                  @click="remover(foto.id)"
+                  @click.stop="remover(foto.id)"
                 >
 
                   <ion-icon
@@ -94,6 +99,60 @@
 
       </div>
 
+
+      <!-- MODAL DA FOTO -->
+
+      <ion-modal
+        :is-open="fotoSelecionada !== null"
+        @didDismiss="fecharFoto"
+      >
+
+        <ion-header>
+
+          <ion-toolbar>
+
+            <ion-title>
+              Foto
+            </ion-title>
+
+            <ion-buttons slot="end">
+
+              <ion-button
+                @click="fecharFoto"
+              >
+
+                Fechar
+
+              </ion-button>
+
+            </ion-buttons>
+
+          </ion-toolbar>
+
+        </ion-header>
+
+
+        <ion-content
+          class="modal-content"
+          @click="fecharFoto"
+        >
+
+          <div class="foto-grande-container">
+
+            <img
+              v-if="fotoSelecionada"
+              :src="fotoSelecionada"
+              class="foto-grande"
+              alt="Foto ampliada"
+              @click.stop
+            />
+
+          </div>
+
+        </ion-content>
+
+      </ion-modal>
+
     </ion-content>
 
   </ion-page>
@@ -114,7 +173,9 @@ import {
   IonCol,
   IonCard,
   IonButton,
-  IonIcon
+  IonIcon,
+  IonModal,
+  IonButtons
 } from '@ionic/vue'
 
 
@@ -125,10 +186,53 @@ import {
 
 
 import {
+  ref
+} from 'vue'
+
+
+import {
   fotos,
   removerFoto
 } from '@/data/fotos'
 
+
+/*
+ * Foto atualmente selecionada
+ */
+
+const fotoSelecionada =
+  ref<string | null>(null)
+
+
+/*
+ * ABRIR FOTO
+ */
+
+function abrirFoto(
+  caminho: string
+) {
+
+  fotoSelecionada.value =
+    caminho
+
+}
+
+
+/*
+ * FECHAR FOTO
+ */
+
+function fecharFoto() {
+
+  fotoSelecionada.value =
+    null
+
+}
+
+
+/*
+ * REMOVER FOTO
+ */
 
 function remover(
   id: number
@@ -142,6 +246,10 @@ function remover(
 
 
 <style scoped>
+
+/* =========================
+   GALERIA
+========================= */
 
 .vazio {
 
@@ -170,6 +278,76 @@ function remover(
   height: 180px;
 
   object-fit: cover;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease;
+
+}
+
+
+/*
+ * Pequeno efeito ao passar
+ * o mouse sobre a foto.
+ */
+
+.foto:hover {
+
+  transform: scale(1.03);
+
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+.modal-content {
+
+  --background: rgba(0, 0, 0, 0.95);
+
+}
+
+
+/*
+ * Centraliza a foto
+ */
+
+.foto-grande-container {
+
+  width: 100%;
+
+  height: 100%;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 20px;
+
+}
+
+
+/*
+ * Foto ampliada
+ */
+
+.foto-grande {
+
+  max-width: 100%;
+
+  max-height: 90vh;
+
+  width: auto;
+
+  height: auto;
+
+  object-fit: contain;
+
+  border-radius: 10px;
 
 }
 
