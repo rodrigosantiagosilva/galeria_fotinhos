@@ -1,65 +1,84 @@
 <template>
+
   <ion-page>
+
     <ion-header>
+
       <ion-toolbar>
-        <ion-title>Camera</ion-title>
+
+        <ion-title>
+          Câmera
+        </ion-title>
+
       </ion-toolbar>
+
     </ion-header>
 
-    <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Camera</ion-title>
-        </ion-toolbar>
-      </ion-header>
 
-      <div class="ion-padding">
-        <!-- Preview da foto -->
-        <img
-          v-if="fotoSrc"
-          :src="fotoSrc"
-          style="width: 100%; border-radius: 12px"
-        />
+    <ion-content class="ion-padding">
 
-        <!-- Placeholder vazio -->
-        <ion-card v-else>
-          <ion-card-content>
-            Nenhuma foto selecionada
-          </ion-card-content>
-        </ion-card>
+      <div class="camera-container">
 
-        <ion-button expand="block" @click="tirarFoto">
+        <h1>
+          Adicionar foto
+        </h1>
+
+        <p>
+          Escolha uma opção:
+        </p>
+
+
+        <ion-button
+          expand="block"
+          @click="tirarFoto"
+        >
+
+          <ion-icon
+            :icon="cameraOutline"
+            slot="start"
+          />
+
           Tirar Foto
+
         </ion-button>
+
 
         <ion-button
           expand="block"
           fill="outline"
           @click="abrirGaleria"
         >
-          Galeria
+
+          <ion-icon
+            :icon="imagesOutline"
+            slot="start"
+          />
+
+          Escolher da Galeria
+
         </ion-button>
+
       </div>
+
     </ion-content>
+
   </ion-page>
+
 </template>
 
+
 <script setup lang="ts">
+
 import {
   IonPage,
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
-  IonCard,
-  IonCardContent,
   IonButton,
-  toastController
-
+  IonIcon
 } from '@ionic/vue'
 
-import { ref, onMounted } from 'vue'
-// 
 
 import {
   Camera,
@@ -67,74 +86,177 @@ import {
   CameraSource
 } from '@capacitor/camera'
 
-const fotoSrc = ref<string | null>(null)
+
+import {
+  cameraOutline,
+  imagesOutline
+} from 'ionicons/icons'
 
 
+import {
+  useRouter
+} from 'vue-router'
+
+
+import {
+  adicionarFoto
+} from '@/data/fotos'
+
+
+const router =
+  useRouter()
+
+
+/*
+ * CÂMERA
+ */
 
 async function tirarFoto() {
-  try {
-    const foto = await Camera.getPhoto({
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Prompt,
-      quality: 90,
-      width: 800
-    })
 
-    fotoSrc.value = foto.dataUrl ?? null
-  } catch (err: unknown) {
-    // Usuário cancelou
-    if (String(err).includes('cancelled')) {
+  try {
+
+    const foto =
+      await Camera.getPhoto({
+
+        quality: 90,
+
+        allowEditing: false,
+
+        resultType:
+          CameraResultType.DataUrl,
+
+        source:
+          CameraSource.Camera
+
+      })
+
+
+    if (!foto.dataUrl) {
+
       return
+
     }
 
-    await mostrarToast(
-      'Não foi possível acessar a câmera',
-      'danger'
+
+    /*
+     * Adiciona a foto
+     * ao vetor.
+     */
+
+    adicionarFoto(
+      foto.dataUrl
     )
+
+
+    /*
+     * Vai para a Tab 2.
+     */
+
+    await router.replace(
+      '/tabs/tab2'
+    )
+
+
+  } catch (erro) {
+
+    console.error(
+      'Erro ao tirar foto:',
+      erro
+    )
+
   }
+
 }
+
+
+/*
+ * GALERIA
+ */
 
 async function abrirGaleria() {
+
   try {
-    const foto = await Camera.getPhoto({
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Photos
-    })
 
-    fotoSrc.value = foto.dataUrl ?? null
-  } catch (err: unknown) {
-    if (String(err).includes('cancelled')) {
+    const foto =
+      await Camera.getPhoto({
+
+        quality: 90,
+
+        allowEditing: false,
+
+        resultType:
+          CameraResultType.DataUrl,
+
+        source:
+          CameraSource.Photos
+
+      })
+
+
+    if (!foto.dataUrl) {
+
       return
+
     }
 
-    await mostrarToast(
-      'Não foi possível acessar a galeria',
-      'danger'
+
+    adicionarFoto(
+      foto.dataUrl
     )
+
+
+    await router.replace(
+      '/tabs/tab2'
+    )
+
+
+  } catch (erro) {
+
+    console.error(
+      'Erro ao abrir galeria:',
+      erro
+    )
+
   }
+
 }
 
-async function mostrarToast(message: string, color: string = 'primary', duration = 2000) {
-  const toast = await toastController.create({
-    message,
-    color,
-    duration,
-    position: 'bottom'
-  })
-  await toast.present()
-}
-
-async function verificarPermissao() {
-  const status = await Camera.checkPermissions()
-
-  if (status.camera !== 'granted') {
-    const result = await Camera.requestPermissions()
-    if (result.camera !== 'granted') {
-      await mostrarToast('Permissão de câmera negada', 'danger')
-      return false
-    }
-  }
-  return true
-}
-onMounted(verificarPermissao())
 </script>
+
+
+<style scoped>
+
+.camera-container {
+
+  max-width: 450px;
+
+  margin: 80px auto;
+
+  text-align: center;
+
+}
+
+
+.camera-container h1 {
+
+  margin-bottom: 10px;
+
+}
+
+
+.camera-container p {
+
+  opacity: 0.7;
+
+  margin-bottom: 30px;
+
+}
+
+
+ion-button {
+
+  margin-bottom: 15px;
+
+}
+
+</style>
